@@ -40,7 +40,9 @@ router.post(
 
       if (user) {
         //Create an error message here similar to how the package above returns an error message
-        res.status(400).json({ errors: [{ msg: 'User already exists' }] });
+        return res
+          .status(400)
+          .json({ errors: [{ msg: 'User already exists' }] });
       }
 
       // Get users gravatar
