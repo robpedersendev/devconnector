@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 
+// Bring in the JWT (Json web token)
+const jwt = require('jsonwebtoken');
+// Bring in the config/default.json file to use the JWT secret
+const config = require('config');
+
 // Import the user model
 const User = require('../../models/User');
 
@@ -69,7 +74,29 @@ router.post(
       await user.save();
 
       // Return the Jsonwebtoken
-      res.send('User Route');
+
+      const payload = {
+        user: {
+          // Since we are using mongoose, we do not need to use the "._" to refer to the user that Mongodb uses. This is an abstraction.
+          id: user.id,
+        },
+      };
+
+      // Sign the token
+      jwt.sign(
+        // Pass in the payload
+        payload,
+        // Pass in the secret
+        config.get('jwtSecret'),
+        // Set an expiration
+        { expiresIn: 3600000 }, // Change this to 3600 for 1 hour for prod
+        (err, token) => {
+          // If there is an error, throw an error
+          if (err) throw err;
+          // If not, return the token to the client
+          res.json({ token });
+        }
+      );
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
